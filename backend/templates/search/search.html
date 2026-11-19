@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}와인 검색 - AI 와인 소믈리에{% endblock %}
+
+{% block content %}
+<div class="container section">
+    <h1 class="page-title">와인 검색</h1>
+    <p class="page-lead">단어가 정확히 일치하지 않아도 의미가 가까운 와인을 찾아줍니다.</p>
+
+    <form class="search-form" action="/search" method="get">
+        <div class="field field-query">
+            <label for="query">검색어</label>
+            <input id="query" name="query" type="search" value="{{ query }}" maxlength="500"
+                   placeholder="예: 갈비찜과 어울리는 묵직한 레드" required {% if not query %}autofocus{% endif %}>
+        </div>
+        <div class="field">
+            <label for="source_type">검색 대상</label>
+            <select id="source_type" name="source_type">
+                {% for value, label in [('all', '전체'), ('Structured Data', '기본정보'), ('Unstructured Data', '상세 설명')] %}
+                <option value="{{ value }}" {% if value == source_type %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="k">결과 수</label>
+            <select id="k" name="k">
+                {% for n in [3, 5, 10] %}
+                <option value="{{ n }}" {% if n == k %}selected{% endif %}>{{ n }}개</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="min_price">최소 가격(만원)</label>
+            <input id="min_price" name="min_price" type="number" min="0" step="any" inputmode="decimal"
+                   value="{{ '%g' % min_price if min_price is not none else '' }}">
+        </div>
+        <div class="field">
+            <label for="max_price">최대 가격(만원)</label>
+            <input id="max_price" name="max_price" type="number" min="0" step="any" inputmode="decimal"
+                   value="{{ '%g' % max_price if max_price is not none else '' }}">
+        </div>
+        <label class="field-check">
+            <input name="in_stock_only" type="checkbox" value="true" {% if in_stock_only %}checked{% endif %}>
+            재고 있는 와인만
+        </label>
+        <button class="button button-wine" type="submit">검색</button>
+    </form>
+
+    {% if error %}
+    <div class="notice notice-error" role="alert">{{ error }}</div>
+    {% elif not query %}
+    <div class="chips" aria-label="검색어 예시">
+        {% for example in ['갈비찜과 어울리는 묵직한 레드', '샤또 마고 2002 가격', '해산물에 어울리는 상큼한 화이트', '기념일에 마실 샴페인'] %}
+        <a class="chip" href="/search?query={{ example | urlencode }}">{{ example }}</a>
+        {% endfor %}
+    </div>
+    {% elif not results %}
+    <div class="empty-state">
+        {% if min_price is not none or max_price is not none or in_stock_only %}
+        조건에 맞는 와인이 없습니다. 가격 범위나 재고 조건을 바꿔 보세요.
+        {% else %}
+        검색 결과가 없습니다. 다른 표현으로 검색해 보세요.
+        {% endif %}
+    </div>
+    {% else %}
+    <p class="result-summary">
+        <strong>{{ query }}</strong> 검색 결과 {{ results | length }}건 · 유사도 순
+        {%- if min_price is not none and max_price is not none %} · {{ '%g' % min_price }}~{{ '%g' % max_price }}만원
+        {%- elif min_price is not none %} · {{ '%g' % min_price }}만원 이상
+        {%- elif max_price is not none %} · {{ '%g' % max_price }}만원 이하
+        {%- endif %}
+        {%- if in_stock_only %} · 재고 있음{% endif %}
+    </p>
+    <ol class="result-list">
+        {% for wine in results %}
+        <li class="wine-card">
+            <div class="wine-card-head">
+                <div>
+                    <h2>{{ wine.name }} <span class="wine-vintage">{{ wine.vintage }}</span></h2>
+                    <ul class="tags">
+                        <li>{{ wine.region }}</li>
+                        <li>{{ '가격 미정' if wine.price == '미정' else wine.price }}</li>
+                        <li {% if wine.stock == '0' %}class="tag-muted"{% endif %}>{{ '재고 없음' if wine.stock == '0' else '재고 ' ~ wine.stock ~ '병' }}</li>
+                    </ul>
+                </div>
+                <div class="score" title="코사인 유사도 {{ wine.score }}">
+                    <span class="score-value">{{ '%.0f' % (wine.score * 100) }}%</span>
+                    <span class="score-track"><span class="score-fill" style="width: {{ '%.0f' % (wine.score * 100) }}%"></span></span>
+                    <span class="score-label">유사도</span>
+                </div>
+            </div>
+            {% if wine.pairing %}
+            <p class="wine-pairing"><strong>한식 페어링</strong> {{ wine.pairing }}</p>
+            {% endif %}
+            {% if wine.tasting_note %}
+            <p class="wine-note">{{ wine.tasting_note }}</p>
+            {% endif %}
+            <p class="wine-source">{{ '기본정보' if wine.source_type == 'Structured Data' else '상세 설명' }}에서 찾음</p>
+        </li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+</div>
+{% endblock %}

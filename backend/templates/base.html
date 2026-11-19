@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}AI 와인 소믈리에{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍷</text></svg>">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% set path = request.url.path %}
+    <header class="site-header">
+        <div class="container site-header-inner">
+            <a class="brand" href="/"><span aria-hidden="true">🍷</span> AI 와인 소믈리에</a>
+            <nav class="site-nav" aria-label="주요 메뉴">
+                <a href="/" {% if path == '/' %}aria-current="page"{% endif %}>홈</a>
+                <a href="/search" {% if path.startswith('/search') %}aria-current="page"{% endif %}>와인 검색</a>
+                <a href="/chat" {% if path.startswith('/chat') %}aria-current="page"{% endif %}>와인 챗봇</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="site-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}와인 챗봇 - AI 와인 소믈리에{% endblock %}
+{% block body_class %}page-chat{% endblock %}
+
+{% block content %}
+<div class="container chat">
+    <div class="chat-head">
+        <h1 class="page-title">와인 챗봇</h1>
+        <button id="reset-button" class="button button-line" type="button">새 대화</button>
+    </div>
+
+    <div id="messages" class="chat-messages" aria-live="polite">
+        <div id="chat-empty" class="chat-empty">
+            <p class="chat-empty-title">무엇을 도와드릴까요?</p>
+            <p>음식, 예산, 취향을 알려주시면 어울리는 와인을 찾아드립니다.</p>
+            <div class="chips">
+                {% for example in ['불고기에 어울리는 와인을 추천해줘', '샤또 마고 2002 가격과 재고 알려줘', '20만원 이하 와인 3개 추천해줘', '보르도 와인 입문 영상도 찾아줘'] %}
+                <button class="chip" type="button" data-example>{{ example }}</button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <form id="chat-form" class="chat-form">
+        <label class="visually-hidden" for="chat-input">와인에 대해 물어보세요</label>
+        <textarea id="chat-input" rows="1" maxlength="2000" placeholder="와인에 대해 물어보세요..." autofocus></textarea>
+        <button id="send-button" class="button button-wine" type="submit">보내기</button>
+    </form>
+    <p class="chat-hint">Enter로 전송 · Shift+Enter로 줄바꿈</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/chat.js') }}" defer></script>
+{% endblock %}
